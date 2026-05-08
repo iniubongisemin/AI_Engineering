@@ -110,3 +110,113 @@ If the text is written in English, check if it contains the keyword 'technology'
 If it does, suggest a suitable title for it, otherwise, write 'Keyword not found'.```{text}```"""
 
 print(get_response(prompt))
+
+
+"GENERATING A TABLE"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Create a prompt that generates the table
+prompt = f"Generate a table of 10 books, with columns for Title, Author, and Year, that you should read given that you are a science fiction lover."
+
+# Get the response
+response = get_response(prompt)
+print(response)
+
+"CUSTOMIZING OUTPUT FORMAT"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Create the instructions
+instructions = "Determine the language and generate a suitable title for the pre-loaded text excerpt that will be provided using triple backticks (```) delimiters."
+
+# Create the output format
+output_format = "Include the text, language, and title, each on a separate line, using 'Text:', 'Language:', and 'Title:' as prefixes for each line."
+
+# Create the final prompt
+prompt = instructions + output_format + f"```{text}```"
+response = get_response(prompt)
+print(response)
+
+"USING CONDITIONAL PROMPTS"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Create the instructions
+instructions = "Infer the language and the number of sentences of the given delimited text; then if the text contains more than one sentence, generate a suitable title for it, otherwise, write 'N/A' for the title."
+
+# Create the output format
+output_format = "Include the text, language, number of sentences, and title, each on a separate line,and ensure to use 'Text:', 'Language:', and 'Title:' as prefixes for each line."
+
+prompt = instructions + output_format + f"```{text}```"
+response = get_response(prompt)
+print(response)
+
+
+"ZERO-SHOT PROMPTING"
+prompt = "What is prompt engineering?"
+print(get_response(prompt))
+
+
+"ONE-SHOT PROMPTING"
+prompt = """
+Q: Sum the numbers 3, 5, and 6. A: 3+5+6=14
+Q: Sum the numbers 2, 4, and 7. A:
+"""
+print(get_response(prompt))
+
+
+"FEW-SHOT PROMPTING"
+prompt = """
+Text: Today the weather is fantastic -> Classification: positive
+Text: The furniture is small -> Classification: neutral
+Text: I don't like your attitude -> Classification: negative
+Text: That shot selection was awful -> Classification:
+"""
+print(get_response(prompt))
+
+
+"SENTIMENT ANALYSIS WITH FEW-SHOT PROMPTING"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+response = client.chat.completions.create(
+  model = "gpt-4o-mini",
+  # Provide the examples as previous conversations
+  messages = [{"role": "user", "content": "The product quality exceeded my expectations"},
+              {"role": "assistant", "content": "1"},
+              {"role": "user", "content": "I had a terrible experience with this product's customer service"},
+              {"role": "assistant", "content": "-1"},
+              # Provide the text for the model to classify
+              {"role": "user", "content": "The price of the product is really fair given its features"}
+             ],
+  temperature = 0
+)
+print(response.choices[0].message.content)
+
+
+"MULTI-STEP PROMPTING"
+"e.g of Single-Step Prompt"
+prompt = "Compose a travel blog"
+print(get_response(prompt))
+
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Create a single-step prompt to get help planning the vacation
+prompt = "Plan the perfect beach vacation"
+
+response = get_response(prompt)
+print(response)
+
+"e.g of Multi-step Prompt"
+prompt = """Compose a travel blog as follows:
+Step 1: Introduce the destination.
+Step 2: Share personal adventures during the trip.
+Step 3: Summarize the journey.
+"""
+print(get_response(prompt))
+
+
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Create a prompt detailing steps to plan the trip
+prompt = """Make a plan for a beach vacation, which should include: four potential locations, each with some accommodation options, some activities, and an evaluation of the pros and cons."""
+
+response = get_response(prompt)
+print(response)
