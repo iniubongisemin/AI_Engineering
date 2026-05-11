@@ -220,3 +220,74 @@ prompt = """Make a plan for a beach vacation, which should include: four potenti
 
 response = get_response(prompt)
 print(response)
+
+
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+code = '''
+def calculate_rectangle_area(length, width):
+    area = length * width
+    return area
+'''
+
+
+"ANALYSING SOLUTION CORRECTNESS"
+# Create a prompt that analyzes correctness of the code
+prompt = f"""Assess the function provided in the delimited code: {code} according to three criteria:
+1. Correct syntax
+2. Receiving two inputs
+3. Returning one output
+"""
+
+response = get_response(prompt)
+print(response)
+
+
+"REASONING WITH CHAIN OF THOUGHT PROMPTING"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Create the chain-of-thought prompt
+prompt = """Q: Calculate my friend's father's age in 10 years, given that he is currently twice my friend's age, and my friend is 20.
+A: Let's think step by step"""
+
+response = get_response(prompt)
+print(response)
+
+
+"ONE-SHOT CHAIN OF THOUGHT PROMPTS"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Define the example 
+example = """Q: Sum the even numbers in the following set: {9, 10, 13, 4, 2}.
+             A: Even numbers: 10, 4, 2. Adding them: 10+4+2=16"""
+
+# Define the question
+question = """Q: Sum the even numbers in the following set: {15, 13, 82, 7, 14} 
+              A:"""
+
+# Create the final prompt
+prompt = example + question
+response = get_response(prompt)
+print(response)
+
+
+"SELF-CONSISTENCY PROMPTS"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Create the self_consistency instruction
+self_consistency_instruction = """Imagine three completely independent experts who
+reason differently are answering this question. The final answer is obtained by
+majority vote. The question is: """
+
+# Create the problem to solve
+problem_to_solve = "If you own a store that sells laptops and mobile phones. You start your day with 50 devices in the store, out of which 60% are mobile phones. Throughout the day, three clients visited the store, each of them bought one mobile phone, and one of them bought additionally a laptop. Also, you added to your collection 10 laptops and 5 mobile phones. How many laptops and mobile phones do you have by the end of the day?"
+
+# Create the final prompt
+prompt = self_consistency_instruction + problem_to_solve
+
+response = get_response(prompt)
+print(response)
+
+
+
+
