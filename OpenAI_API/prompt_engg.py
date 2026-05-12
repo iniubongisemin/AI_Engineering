@@ -289,5 +289,72 @@ response = get_response(prompt)
 print(response)
 
 
+"ITERATIVE PROMPT ENGINEERING"
+"Refining Prompts"
+
+"Initial prompt"
+prompt = "Generate an Excel sheet containing five student names and their grades"
+print(get_response(prompt))
+"""Response: I'm sorry, but as a text-based AI, I am
+unable to directly provide an Excel sheet.
+However, I can help you generate a sample
+representation of the data you requested."""
+
+"Refined prompt"
+prompt = """Generate a table that I can copy
+to Excel, containing five student names and
+their grades"""
+print(get_response(prompt))
+"""Response:
+| Student Name | Grade |
+|--------------|-------|
+| Student 1 | 90 |
+| Student 2 | 85 |
+| Student 3 | 95 |
+| Student 4 | 88 |
+| Student 5 | 92 |
+"""
+
+"Example: analyzing a python function"
+code = '''
+def calculate_rectangle_area(length, width):
+area = length * width
+return area
+'''
+"Initial prompt: "
+prompt = f"""
+Analyze the code delimited by triple backticks and provide its programming
+language with one sentence
+```{code}```."""
+print(get_response(prompt))
+
+
+"ITERATIVE PROMPT ENGINEERING FOR STANDARD PROMPTS"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Refine the following prompt
+prompt = "Give me the top 10 pre-trained language models in a table with three columns for the top ten pre-trained language models, listing the model name, release year, and owning company."
+
+response = get_response(prompt)
+print(response)
+
+
+"ITERATIVE PROMPT ENGINEERING FOR FEW-SHOT PROMPTS"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Refine the following prompt
+prompt = """
+Provide the output for the last prompt by taking a cue from the first four examples below:
+Receiving a promotion at work made me feel on top of the world -> Happiness
+The movie's ending left me with a heavy feeling in my chest -> Sadness
+Walking alone in the dark alley sent shivers down my spine -> Fear
+The students sat and listened to their teacher -> No explicit emotion
+The employees proceeded with the meeting agenda -> No explicit emotion
+They sat and ate their meal ->
+"""
+
+response = get_response(prompt)
+print(response)
+
 
 
