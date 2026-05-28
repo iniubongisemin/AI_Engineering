@@ -106,4 +106,75 @@ print("Ticket: ", ticket)
 print("Class: ", response)
 
 
-"TEXT ANALYSIS"
+"CODE GENERATION WITH PROBLEM DESCRIPTION"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Craft a prompt that asks the model for the function
+prompt = "Write a Python function that receives a list of 12 floats representing monthly sales data as input and, returns the month with the highest sales value as output."
+
+response = get_response(prompt)
+print(response)
+
+
+"INPUT-OUTPUT EXAMPLES FOR CODE GENERATION"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+examples="""input = [10, 5, 8] -> output = 23
+input = [5, 2, 4] -> output = 11
+input = [2, 1, 3] -> output = 6
+input = [8, 4, 6] -> output = 18
+"""
+
+# Craft a prompt that asks the model for the function
+prompt = f"""Infer the Python function that maps the inputs to the outputs in the provided examples delimited by triple backticks ```{examples}```"""
+
+response = get_response(prompt)
+print(response)
+
+
+"MODIFYING CODE WITH MULTISTEP PROMPTS"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+function = """def calculate_area_rectangular_floor(width, length):
+					return width*length"""
+
+# Craft a multi-step prompt that asks the model to adjust the function
+prompt = f"""Modify the function delimited by triple backticks ```{function}``` according to these specified requirements: 
+1. Test if the inputs to the functions are positive, and if not, display appropriate error messages
+2. If the inputs are positive, return the area and perimeter of the rectangle."""
+
+response = get_response(prompt)
+print(response)
+
+
+"EXPLAINING CODE STEP BY STEP"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Craft a chain-of-thought prompt that asks the model to explain what the function does
+prompt = f"""Q: Explain, step by step the provided function delimited by triple backticks ```{function}```
+A: The function does...
+"""
+ 
+response = get_response(prompt)
+print(response)
+
+
+"CREATING A DUAL PROMPT get_response() FUNCTION"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+def get_response(system_prompt, user_prompt):
+  # Assign the role and content for each message
+  messages = [{"role": "system", "content": system_prompt},
+      		  {"role": "user", "content": user_prompt}]  
+  response = client.chat.completions.create(
+      model="gpt-4o-mini", messages= messages, temperature=0)
+  
+  return response.choices[0].message.content
+
+system_prompt = """You are a principal software engineer at a 'FAANG' company who has a decade of experience building and scaling distributed systems. Only respond to questions related to software engineering & computer science! If you're asked an unrelated question 'respond with: I am designed to answer only software related questions"""
+
+user_prompt = "Explain what 'microservices' are to me like I'm an intern at your company"
+
+# Try the function with a system and user prompts of your choice 
+response = get_response(system_prompt, user_prompt)
+print(response)
