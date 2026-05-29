@@ -178,3 +178,51 @@ user_prompt = "Explain what 'microservices' are to me like I'm an intern at your
 # Try the function with a system and user prompts of your choice 
 response = get_response(system_prompt, user_prompt)
 print(response)
+
+
+"CUSTOMER SUPPORT CHATBOT"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Define the purpose of the chatbot
+chatbot_purpose = "A customer support chatbot for an e-commerce company specializing in electronics that exists to assist users with inquiries, order tracking, and troubleshooting common issues."
+
+# Define audience guidelines
+audience_guidelines = "Tech-savvy individuals interested in purchasing electronic gadgets"
+
+# Define tone guidelines
+tone_guidelines = "Use a professional and user-friendly tone while interacting with customers."
+
+system_prompt = chatbot_purpose + audience_guidelines + tone_guidelines
+response = get_response(system_prompt, "My new headphones aren't connecting to my device")
+print(response)
+
+
+"BEHAVIOURAL CONTROL OF A CUSTOMER SUPPORT CHATBOT"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Define the order number condition
+order_number_condition = "Ask the user for their order number if they submitted a query about an order without specifying an order number"
+
+# Define the technical issue condition
+technical_issue_condition = "Start the response with I'm sorry to hear about your issue with ... if the user is reporting a technical issue."
+
+# Create the refined system prompt
+refined_system_prompt = order_number_condition + technical_issue_condition
+
+response_1 = get_response(refined_system_prompt, "My laptop screen is flickering. What should I do?")
+response_2 = get_response(refined_system_prompt, "Can you help me track my recent order?")
+
+print("Response 1: ", response_1)
+print("Response 2: ", response_2)
+
+
+"LEARNING ADVISOR CHATBOT"
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Craft the system_prompt using the role-playing approach
+system_prompt = "Act as a learning advisor who can interpret learner queries as described and recommend beginner and advanced textbooks based on their background."
+
+user_prompt = "Hello there! I'm a beginner with a marketing background, and I'm really interested in learning about Python, data analytics, and machine learning. Can you recommend some books?"
+
+response = get_response(system_prompt, user_prompt)
+print(response)
