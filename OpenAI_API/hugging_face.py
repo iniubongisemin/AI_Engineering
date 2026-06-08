@@ -49,3 +49,50 @@ results = gpt2_pipeline("What if AI", max_new_tokens=10, num_return_sequences=2)
 
 for result in results:
     print(result['generated_text'])
+
+
+"HUGGINGFACE DATASETS"
+"https://huggingface.co/datasets"
+"https://huggingface.co/docs/datasets/loading"
+
+
+"DOWNLOADING A DATASET"
+from datasets import load_dataset
+
+data = load_dataset("IVN-RIN/BioBERT_Italian")
+
+"Split parameter"
+data = load_dataset("IVN-RIN/BioBERT_Italian", split="train")
+"https://huggingface.co/docs/datasets/loading"
+"https://huggingface.co/docs/datasets/v2.15.0/loading"
+
+"Filter for pattern ' bella '"
+filtered = data.filter(lambda row: " bella " in row["text"])
+print(filtered)
+
+"https://huggingface.co/docs/datasets/process#select-and-filter"
+
+"Select the first two rows"
+sliced = filtered.select(range(2))
+print(sliced)
+
+"Extract the 'text' for the first row"
+print(sliced[0]["text"])
+
+
+"LOADING DATASETS EXERCISE"
+# Load the "validation" split of the TIGER-Lab/MMLU-Pro dataset
+my_dataset = load_dataset("TIGER-Lab/MMLU-Pro", split="validation")
+
+# Display dataset details
+print(my_dataset)
+
+
+"MANIPULATING DATASETS"
+# Filter the documents
+filtered = wikipedia.filter(lambda row: "football" in row["text"])
+
+# Create a sample dataset
+example = filtered.select(range(1))
+
+print(example[0]["text"])
