@@ -1,4 +1,5 @@
 from transformers import pipeline
+from openai import OpenAI
 
 gpt2_pipeline = pipeline(task="text-generation", model="openai-community/gpt2")
 
@@ -89,6 +90,8 @@ print(my_dataset)
 
 
 "MANIPULATING DATASETS"
+wikipedia = load_dataset("TIGER-Lab/MMLU-Pro", split="validation")
+
 # Filter the documents
 filtered = wikipedia.filter(lambda row: "football" in row["text"])
 
@@ -237,3 +240,48 @@ my_pipeline = pipeline(task="sentiment-analysis", model=my_model, tokenizer=my_t
 # Predict the sentiment
 output = my_pipeline("This course is pretty good, I guess.")
 print(f"Sentiment using AutoClasses: {output[0]['label']}")
+
+
+"EXTRACTING TEXT FROM PDF"
+from pypdf import PdfReader
+
+# Extract text from the PDF
+reader = PdfReader("US_Employee_Policy.pdf")
+
+# Extract text from all pages
+document_text = ""
+for page in reader.pages: 
+    document_text += page.extract_text()
+
+print(document_text)
+
+
+"BUILDING Q&A PIPELINE"
+# Load the question-answering pipeline
+qa_pipeline = pipeline(task="question-answering", model="distilbert-base-cased-distilled-squad")
+
+question = "What is the notice period for resignation?"
+
+# Get the answer from the QA pipeline
+result = qa_pipeline(question=question, context=document_text)
+
+# Print the answer
+print(f"Answer: {result['answer']}")
+
+
+"FORMATTING MODEL RESPONSE AS JSON"
+# Create the OpenAI client
+client = OpenAI(api_key="<OPENAI_API_TOKEN>")
+
+# Create the request
+response = client.chat.completions.create(
+  model="gpt-4o-mini",
+  messages=[
+   {"role": "user", "content": "I have these notes with book titles and authors: New releases this week! The Beholders by Hester Musson, The Mystery Guest by Nita Prose. Please organize the titles and authors in a json file."}
+  ],
+  # Specify the response format
+  response_format={"type": "json_object"}
+)
+
+# Print the response
+print(response.choices[0].message.content)
