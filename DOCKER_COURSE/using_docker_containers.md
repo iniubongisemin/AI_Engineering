@@ -37,4 +37,11 @@ docker pull ubuntu:22.04
 CLEANING UP DOCKER IMAGES
 docker image rm ubuntu
 
+CLEANING UP CONTAINERS
+docker container prune
+
+CLEANING UP IMAGES
+docker image prune -a
+
+
 
