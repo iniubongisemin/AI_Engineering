@@ -10,7 +10,6 @@ def get_response(prompt):
   return response.choices[0].message.content
 
 
-
 "PROMPT ENGINEERING FOR BUSINESS APPLICATIONS"
 client = OpenAI(api_key="<OPENAI_API_TOKEN>")
 report = ""
