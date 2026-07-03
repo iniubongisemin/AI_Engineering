@@ -248,3 +248,96 @@ for index, review in enumerate(reviews):
   closest = find_closest(review_embeddings[index], class_embeddings)
   label = sentiments[closest['index']]['label']
   print(f'"{review}" was classified as {label}')
+
+
+"GETTING STARTED WITH ChromaDB"
+import chromadb
+from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
+# Create a persistant client
+client = chromadb.PersistentClient()
+
+# Create a netflix_title collection using the OpenAI Embedding function
+collection = client.create_collection(
+    name="netflix_titles",
+    embedding_function=OpenAIEmbeddingFunction(model_name="text-embedding-3-small", api_key="<OPENAI_API_TOKEN>")
+)
+
+# List the collections
+print(client.list_collections())
+
+
+"ESTIMATING TOKEN COSTS WITH tiktoken"
+import tiktoken
+documents = [""]
+# Load the encoder for the OpenAI text-embedding-3-small model
+enc = tiktoken.encoding_for_model("text-embedding-3-small")
+
+# Encode each text in documents and calculate the total tokens
+total_tokens = sum(len(enc.encode(text)) for text in documents)
+
+cost_per_1k_tokens = 0.00002
+
+# Display number of tokens and cost
+print('Total tokens:', total_tokens)
+print('Cost:', cost_per_1k_tokens * total_tokens / 1000)
+
+
+"ADDING DATA TO THE COLLECTION"
+ids = []
+documents = []
+# Recreate the netflix_titles collection
+collection = client.create_collection(
+  name="netflix_titles",
+  embedding_function=OpenAIEmbeddingFunction(model_name="text-embedding-3-small", api_key="<OPENAI_API_TOKEN>")
+)
+
+# Add the documents and IDs to the collection
+collection.add(ids=ids, documents=documents)
+
+# Print the collection size and first ten items
+print(f"No. of documents: {collection.count()}")
+print(f"First ten documents: {collection.peek()}")
+
+
+# Retrieve the netflix_titles collection
+collection = client.get_collection(
+  name="netflix_titles",
+  embedding_function=OpenAIEmbeddingFunction(model_name="text-embedding-3-small", api_key="<OPENAI_API_TOKEN>")
+)
+
+# Query the collection for "films about dogs"
+result = collection.query(
+  query_texts=["films about dogs"]
+)
+
+print(result)
+
+
+"UPDATING & DELETING ITEMS FROM A COLLECTION"
+new_data = [{"id": "s1001", "document": "Title: Cats & Dogs (Movie)\nDescription: A look at the top-secret, high-tech espionage war going on between cats and dogs, of which their human owners are blissfully unaware."},
+ {"id": "s6884", "document": 'Title: Goosebumps 2: Haunted Halloween (Movie)\nDescription: Three teens spend their Halloween trying to stop a magical book, which brings characters from the "Goosebumps" novels to life.\nCategories: Children & Family Movies, Comedies'}]
+
+collection = client.get_collection(
+  name="netflix_titles",
+  embedding_function=OpenAIEmbeddingFunction(model_name="text-embedding-3-small", api_key="<OPENAI_API_TOKEN>")
+)
+
+# Update or add the new documents
+collection.upsert(
+    ids=[item["id"] for item in new_data],
+    documents=[item["document"] for item in new_data]
+)
+
+# Delete the item with ID "s95"
+collection.delete(
+  ids=["s95"]
+)
+
+result = collection.query(
+    query_texts=["films about dogs"],
+    n_results=3
+)
+print(result)
+
+
+"QUERYING WITH MULTIPLE TEXTS"
