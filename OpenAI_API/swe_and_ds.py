@@ -196,3 +196,69 @@ class Document:
   # non-public method to tally document's word counts with Counter
   def _count_words(self):
     return Counter(self.tokens)
+
+
+"USING YOUR CLASS'S FUNCTIONALITY"
+datacamp_tweets = [""]
+# create a new document instance from datacamp_tweets
+datacamp_doc = Document(datacamp_tweets)
+
+# print the first 5 tokens from datacamp_doc
+print(datacamp_doc.tokens[:5])
+
+# print the top 5 most used words in datacamp_doc
+print(datacamp_doc.word_counts.most_common(5))
+
+
+"USING INHERITANCE TO CREATE A CLASS"
+# Define a SocialMedia class that is a child of the `Document class`
+class SocialMedia(Document):
+    def __init__(self, text):
+        Document.__init__(self, text)
+
+
+"ADDING FUNCTIONALITY TO A CHILD CLASS"
+"1/2"
+# Define a SocialMedia class that is a child of the `Document class`
+filter_word_counts = lambda x: x["item"] # NOTE: DUMMY LAMBDA FUNCTION WAS ADDED BY ME 
+class SocialMedia(Document):
+    def __init__(self, text):
+        Document.__init__(self, text)
+        self.hashtag_counts = self._count_hashtags()
+        
+    def _count_hashtags(self):
+        # Filter attribute so only words starting with '#' remain
+        help(filter_word_counts)
+        return filter_word_counts(self.word_counts, first_char="#")
+
+"2/2"
+# Define a SocialMedia class that is a child of the `Document class`
+class SocialMedia(Document):
+    def __init__(self, text):
+        Document.__init__(self, text)
+        self.hashtag_counts = self._count_hashtags()
+        self.mention_counts = self._count_mentions()
+        
+    def _count_hashtags(self):
+        # Filter attribute so only words starting with '#' remain
+        return filter_word_counts(self.word_counts, first_char='#')      
+    
+    def _count_mentions(self):
+        # Filter attribute so only words starting with '@' remain
+        return filter_word_counts(self.word_counts, first_char='@')
+    
+
+"USING YOUR CHILD CLASS"
+# Import custom text_analyzer package
+text_analyzer = lambda x: x # THE LAMBDA FUNCITON IS A PLACEHOLDER
+# import text_analyzer
+
+# Create a SocialMedia instance with datacamp_tweets
+dc_tweets = text_analyzer.SocialMedia(text=datacamp_tweets)
+
+# Print the top five most mentioned users
+print(dc_tweets.mention_counts.most_common(5))
+
+# Plot the most used hashtags
+text_analyzer.plot_counter(dc_tweets.word_counts)
+
