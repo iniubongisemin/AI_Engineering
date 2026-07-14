@@ -1,4 +1,7 @@
+from pydantic import BaseModel, Field
+
 from openai import OpenAI
+import requests, json
 
 "FIRST RESPONSE API CALL"
 
@@ -164,3 +167,129 @@ response = client.responses.create(
 # Print the output text
 print(response.output_text)
 
+
+"BUILDING CONFIDENCE WITH LLM SOURCES"
+# Create a response with web search enabled and sources included
+response = client.responses.create(
+    model="gpt-5.4-mini",
+    tools=[{"type": "web_search"}],
+    input="What is the current stock price of Netflix?",
+    include=["web_search_call.action.sources"]
+)
+
+# Extract and print sources from web search calls
+for item in response.output:
+    if item.type == "web_search_call":
+        print(item.action.sources)
+        
+print(response.output_text)
+
+
+"DEFINING A FUNCTION FOR CONVERTING TIMEZONES"
+def convert_timezone(date_time: str, from_timezone: str, to_timezone: str) -> str:
+    """
+    Convert a datetime from one timezone to another.
+    
+    Args:
+        date_time: The datetime string in ISO format
+        from_timezone: Source timezone
+        to_timezone: Target timezone
+    
+    Returns:
+        A string with the converted datetime and timezone information
+    """
+    # Set the API endpoint
+    url = "https://api.opentimezone.com/convert"
+    
+    # Prepare the request payload
+    payload = {"dateTime": date_time, "fromTimezone": from_timezone, "toTimezone": to_timezone}
+    
+    try:
+        # Make the API request and extract converted time
+        response = requests.post(url, json=payload)
+        response.raise_for_status()
+        
+        data = response.json()
+        converted_time = data.get('dateTime', 'N/A')
+        
+        return f"Time in {to_timezone}: {converted_time}"
+    
+    except requests.exceptions.RequestException as e:
+        return f"Error converting timezone: {str(e)}"
+
+# Test the function
+result = convert_timezone('2025-01-20T14:30:00', 'America/New_York', 'Europe/London')
+print(result)
+
+
+"BUILDING THE OPENAI TOOL DEFINITION"
+tools = [
+    {
+        # Define a function tool called convert_timezone
+        "type": "function",
+        "name": "convert_timezone",
+        "description": "Convert a datetime from one timezone to another using the OpenTimezone API.",
+        "parameters": {
+            "type": "object",
+            # Define the parameter names, types, and descriptions
+            "properties": {
+                "date_time": {
+                    "type": "string",
+                    "description": "The datetime string in ISO format (e.g., '2025-01-20T14:30:00')"
+                },
+                "from_timezone": {
+                    "type": "string",
+                    "description": "The source timezone (e.g., 'America/New_York', 'Asia/Tokyo')"
+                },
+                "to_timezone": {
+                    "type": "string",
+                    "description": "The target timezone (e.g., 'Europe/London', 'Australia/Sydney')"
+                }
+            },
+            # Ensure that all three parameters are required
+            "required": ["date_time", "from_timezone", "to_timezone"],
+            "additionalProperties": False
+        }
+    }
+]
+
+
+"INTEGRATING FUNCTION CALLING TOOLS"
+messages = [{"role": "user", "content": "What time is 2:30pm on January 20th in New York in Tokyo time?"}]
+response = client.responses.create(model="gpt-5.4-mini", input=messages, tools=tools)
+messages += response.output
+
+# Process function calls and execute the timezone conversion
+for item in response.output:
+    if item.type == "function_call":
+        if item.name == "convert_timezone":
+            timezone_result = convert_timezone(**json.loads(item.arguments))
+            
+            # Append function output to messages
+            messages.append({"type": "function_call_output", "call_id": item.call_id, "output": json.dumps({"convert_timezone": timezone_result})})
+
+# Make second API request with function results
+response = client.responses.create(model="gpt-5.4-mini", input=messages, tools=tools)
+print(response.output_text)
+
+
+"CONSISTENT OUTPUTS EVERYTIME"
+# Define the book recommendation schema
+class MovieRecommendation(BaseModel):
+    title: str = Field(description="The movie title")
+    genre: str = Field(description="Primary genre")
+    vibe: str = Field(description="One-word vibe: cozy, thrilling, emotional, or fun")
+    why: str = Field(description="One sentence explaining why this matches")
+
+# Generate structured recommendation
+response = client.responses.parse(
+    model="gpt-5.4-mini",
+    instructions="You are a knowledgeable movie recommender.",
+    input="Recommend a movie for someone who loved Inception and wants something mind-bending",
+    text_format=MovieRecommendation,
+)
+
+# Extract the parsed output and results
+recommendation = response.output_parsed
+print(f"Title: {recommendation.title}")
+print(f"Reason: {recommendation.why}")
