@@ -323,5 +323,131 @@ recommendation = response.output_parsed
 
 print(f"Title: {recommendation.title}")
 print(f"\nSimilar movies:")
-for movie in recommendation.title:
+for movie in recommendation.similar_movies:
     print(f"- {movie.title}: {movie.similarity_reason}")
+
+
+"STREAMING OPENAI RESPONSES"
+prompt = "List the core ingredients to make classic egg pasta pasta in a single line."
+
+# Open a connection for a streaming request
+with client.responses.create(model="gpt-5.4-mini", input=prompt, stream=True) as stream:
+    current_text = ""
+
+    # Complete the output text streaming
+    for event in stream:
+        if event.type == "response.output_text.delta":
+            current_text += event.delta
+            print(current_text)
+
+
+"STREAMING SEMANTIC EVENTS"
+prompt = "Explain how to read a weather forecast in one sentence for a beginner hiker."
+
+with client.responses.create(model="gpt-5.4-mini", input=prompt, stream=True) as stream:
+    for event in stream:
+        # Find response created events
+        if event.type == "response.created":
+            print("Forecast generation started...\n")
+
+        # Find output text completed events
+        elif event.type == "response.output_text.done":
+            print("\n--- Forecast complete ---\n")
+
+        # Find response completed events
+        elif event.type == "response.completed":
+            print(f"\nFull forecast:\n{current_text}")
+
+
+"STREAMING WITH FUNCTION CALLS"
+function_call_arguments = lambda x: x #NOTE: Dummy Definition
+prompt = "What time is 2:30pm on January 20th in New York in Tokyo time?"
+
+# Open the streaming connection and enable tool-calling
+with client.responses.create(model="gpt-5.4-mini", input=prompt, stream=True, tools=tools) as stream:
+    for event in stream:
+        # Filter for function call arguments delta events
+        if event.type == "response.function_call_arguments.delta":
+            print(f"\nTool args streaming: {event.delta}")
+        # Filter for function call arguments complete events
+        elif event.type == "response.function_call_arguments.done":
+            print("Tool call args complete.")
+        # Filter for response completed events
+        elif event.type == "response.completed":
+            print("\n--- Completed ---")
+
+
+"ROLE-BASED INPUTS"
+# Convert this request to use role-based messages
+"QUESTION:"
+response = client.responses.create(
+    model="gpt-5.4-mini",
+    instructions="You are a product cataloging expert who provides concise descriptions.",
+    input="A mustard-yellow colored winter jacket."
+)
+
+"ANSWER"
+# Convert this request to use role-based messages
+response = client.responses.create(
+    model="gpt-5.4-mini",
+    input=[
+        {
+            "role": "system",
+            "content": "You are a product cataloging expert who provides concise descriptions.",
+        },
+        {
+            "role": "user",
+            "content": "A mustard-yellow colored winter jacket."
+        }
+    ]
+)
+
+print(response.output_text)
+
+
+"PROMPTING FROM IMAGES FROM URLS"
+image_url = ""
+visualize_image = lambda x: x #NOTE: DUMMY FUNCTION
+messages = [{"role": "system", "content": "You are a product cataloging expert who provides concise classifications and descriptions."}]
+
+# Add user message with text and image
+messages.append({
+    "role": "user",
+    "content": [
+        {"type": "input_text", "text": "Classify this product and write a brief but punchy description for our catalog."},
+        {"type": "input_image", "image_url": image_url}
+    ]
+})
+
+# Create the response
+response = client.responses.create(
+    model="gpt-5.4-mini",
+    input=messages
+)
+
+print(response.output_text)
+visualize_image(image_url)
+
+
+"PROMPTING WITH LOCAL IMAGE FILES"
+image_path = "LDN_2024_traffic.png"
+# Import base64 module
+import base64
+
+# Encode the image file as base64
+with open(image_path, "rb") as f:
+    image_base64 = base64.b64encode(f.read()).decode("utf-8")
+
+# Create a response with text and image input
+response = client.responses.create(
+    model="gpt-5.4-mini",
+    input=[
+        {"role": "user", "content": [
+            {"type": "input_text", "text": "What mode of transport contributed the highest number of vehicles during business hours? Answer very concisely."},
+            {"type": "input_image", "image_url": f"data:image/png;base64,{image_base64}"}
+        ]}
+    ]
+)
+
+print(response.output_text)
+visualize_image(image_url)
