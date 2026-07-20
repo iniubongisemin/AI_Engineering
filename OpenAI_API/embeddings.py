@@ -4,7 +4,7 @@ from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from scipy.spatial import distance
 
-"EMBEDDINGS"
+"CREATING EMBEDDINGS"
 # Create an OpenAI client
 client = OpenAI(api_key="<OPENAI_API_TOKEN>")
 
