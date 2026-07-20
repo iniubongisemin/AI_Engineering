@@ -1,5 +1,6 @@
 import requests, asyncio, sys
 from mcp.server.fastmcp import FastMCP
+import os
 
 # Create an MCP server instance
 mcp = FastMCP("Currency Converter")
@@ -607,3 +608,97 @@ result = get_currencies()
 print(result[:200] + "..." if len(result) > 200 else result)
 
 
+"PARAMETERIZED DATABASE LOOKUP TOOLS"
+# Add lookup_currencies(prefix): find rows where name or code contains prefix
+@mcp.tool()
+def lookup_currencies(prefix: str) -> str:
+    """Find currencies whose code or name contains the given prefix."""
+    try:
+        # Use parameterized query and LIMIT 50
+        cursor = conn.execute(
+            "SELECT code, name FROM currencies WHERE name LIKE ? OR code LIKE ? LIMIT 50",
+            (f"%{prefix}%", f"%{prefix}%")
+        )
+        rows = cursor.fetchall()
+        return "\n".join(f"{row['code']} - {row['name']}" for row in rows)
+    except sqlite3.Error as e:
+        return f"Database error: {e}"
+
+print(lookup_currencies("Euro"))
+
+
+"MAKING API TOOL CALLS ROBUST"
+@mcp.tool()
+def convert_currency(amount: float, from_currency: str, to_currency: str) -> str:
+    """
+    Convert an amount from one currency to another using current exchange rates.
+
+    Args:
+        amount: The amount to convert
+        from_currency: Source currency code (e.g., 'USD', 'EUR', 'GBP')
+        to_currency: Target currency code (e.g., 'USD', 'EUR', 'GBP')
+
+    Returns:
+        A string with the conversion result and exchange rate
+    """
+    url = f"https://api.frankfurter.dev/v1/latest?base={from_currency}&symbols={to_currency}"
+    # Implement try-except to gracefully handle errors
+    try:
+        # Add a 10-second timeout so the request does not hang
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+        rate = data["rates"].get(to_currency)
+        if rate is None:
+            return f"Could not find exchange rate for {from_currency} to {to_currency}"
+        return f"{amount} {from_currency} = {amount * rate:.2f} {to_currency} (Rate: {rate})"
+    except requests.exceptions.RequestException as e:
+        return f"Error converting currency: {e}"
+
+print(convert_currency(10, "USD", "EUR"))
+
+
+"WHEN APIS REQUIRE AUTHENTICATION"
+@mcp.tool()
+def convert_currency(amount: float, from_currency: str, to_currency: str) -> str:
+    """Convert an amount from one currency to another using current exchange rates."""
+    url = f"https://api.frankfurter.dev/v1/latest?base={from_currency}&symbols={to_currency}"
+    # Read optional API key from the server's environment
+    headers = {}
+    api_key = os.environ.get("CURRENCY_API_KEY")
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    try:
+        # Pass headers (and timeout) to the request; key never goes in the URL
+        r = requests.get(url, headers=headers, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+        rate = data["rates"].get(to_currency)
+        if rate is None:
+            return f"Could not find exchange rate for {from_currency} to {to_currency}"
+        return f"{amount} {from_currency} = {amount * rate:.2f} {to_currency} (Rate: {rate})"
+    except requests.exceptions.RequestException as e:
+        return f"Error converting currency: {e}"
+
+print(convert_currency(10, "USD", "EUR"))
+
+
+"SEARCH FOR A BOOK BY TITLE WITH THE OPEN LIBRARY MCP"
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+
+OPEN_LIBRARY_SERVER_CMD = ""
+OPEN_LIBRARY_SERVER_ARGS = ""
+
+async def main():
+    params = StdioServerParameters(command=OPEN_LIBRARY_SERVER_CMD, args=OPEN_LIBRARY_SERVER_ARGS)
+    async with stdio_client(params) as (reader, writer):
+        async with ClientSession(reader, writer) as session:
+            await session.initialize()
+            # Call get_book_by_title for "AI" and assign the result
+            result = await session.call_tool("get_book_by_title", {"title": "AI"})
+            # Assign the result text and print it
+            text = result.content[0].text
+            print(text)
+
+asyncio.run(main())
