@@ -244,3 +244,72 @@ for chunk in chunks(vectors):
 
 # Retrieve statistics of the connected Pinecone index
 print(index.describe_index_stats())
+
+
+"BATCHING UPSERTS IN PARALLEL"
+# Initialize the client
+pc = Pinecone(api_key=api_key, pool_threads=20)
+
+index = pc.Index('datacamp-index')
+
+# Upsert vectors in batches of 200 vectors
+with pc.Index('datacamp-index', pool_threads=20) as index:
+    async_results = [index.upsert(vectors=chunk, async_req=True) for chunk in chunks(vectors, batch_size=200)]
+    [async_result.get() for async_result in async_results]
+
+# Retrieve statistics of the connected Pinecone index
+print(index.describe_index_stats())
+
+
+"NAMESPACES"
+vector_set1 = [...]
+vector_set2 = [...]
+# Initialize the Pinecone client with your API key
+pc = Pinecone(api_key=api_key)
+index = pc.Index('datacamp-index')
+
+# Upsert vector_set1 to namespace1
+index.upsert(
+  vectors=vector_set1,
+  namespace="namespace1"
+)
+
+# Upsert vector_set2 to namespace2
+index.upsert(
+  vectors=vector_set2,
+  namespace="namespace2"
+)
+
+# Print the index statistics
+print(index.describe_index_stats())
+
+
+"QUERYING NAMESPACES"
+# Initialize the Pinecone client with your API key
+pc = Pinecone(api_key=api_key)
+
+index = pc.Index('datacamp-index')
+
+# Query namespace1 with the vector provided
+query_result = index.query(
+    vector=vector,
+    namespace="namespace1",
+    top_k=3
+)
+print(query_result)
+
+
+"CREATING AND CONFIGURING A PINECONE INDEX"
+# Initialize the Pinecone client with your API key
+pc = Pinecone(api_key=api_key)
+
+# Create Pinecone index
+pc.create_index(
+    name='pinecone-datacamp', 
+    dimension=1536,
+    spec=ServerlessSpec(cloud='aws', region='us-east-1')
+)
+
+# Connect to index and print the index statistics
+index = pc.Index("pinecone-datacamp")
+print(index.describe_index_stats())
