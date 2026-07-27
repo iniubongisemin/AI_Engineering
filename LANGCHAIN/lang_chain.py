@@ -118,3 +118,98 @@ llm = ChatOpenAI(model="gpt-4o-mini", api_key='<OPENAI_API_TOKEN>')
 # Create and invoke the chain
 llm_chain = prompt_template | llm
 print(llm_chain.invoke({"input": "What is Jack's favorite technology on DataCamp?"}))
+
+
+"BUILDING PROMPTS FOR SEQUENTIAL CHAINS"
+# Create a prompt template that takes an input activity
+learning_prompt = PromptTemplate(
+    input_variables=["activity"],
+    template="I want to learn how to {activity}. Can you suggest how I can learn this step-by-step?"
+)
+
+# Create a prompt template that places a time constraint on the output
+time_prompt = PromptTemplate(
+    input_variables=["learning_plan"],
+    template="I only have one week. Can you create a plan to help me hit this goal: {learning_plan}."
+)
+
+# Invoke the learning_prompt with an activity
+print(learning_prompt.invoke({"activity": "Learn Pandas Library"}))
+
+
+"SEQUENTIAL CHAINS WITH LCEL"
+from langchain_core.output_parsers import StrOutputParser
+learning_prompt = PromptTemplate(
+    input_variables=["activity"],
+    template="I want to learn how to {activity}. Can you suggest how I can learn this step-by-step?"
+)
+
+time_prompt = PromptTemplate(
+    input_variables=["learning_plan"],
+    template="I only have one week. Can you create a concise plan to help me hit this goal: {learning_plan}."
+)
+
+# Complete the sequential chain with LCEL
+seq_chain = ({"learning_plan": learning_prompt | llm | StrOutputParser()}
+    | time_prompt
+    | llm
+    | StrOutputParser())
+
+# Call the chain
+print(seq_chain.invoke({"activity": "Learn how to swim"}))
+
+
+"ReAct AGENTS"
+from langchain_community.agent_toolkits.load_tools import load_tools
+from langgraph.prebuilt import create_react_agent
+
+# Define the tools
+tools = load_tools(["wikipedia"])
+
+# Define the agent
+agent = create_react_agent(llm, tools)
+
+# Invoke the agent
+response = agent.invoke({"messages": [("human", "How many people live in New York City?")]})
+print(response['messages'][-1].content)
+
+
+"DEFINING A FUNCTION FOR TOOL USE"
+customers = {"name": "Peak Performance Co."} # DUMMY variable
+# Define a function to retrieve customer info by-name
+def retrieve_customer_info(name: str) -> str:
+    """Retrieve customer information based on their name."""
+    # Filter customers for the customer's name
+    customer_info = customers[customers['name'] == name]
+    return customer_info.to_string()
+  
+# Call the function on Peak Performance Co.
+print(retrieve_customer_info("Peak Performance Co."))
+
+
+"CREATING CUSTOM TOOLS"
+from langchain_core.tools import tool
+# Convert the retrieve_customer_info function into a tool
+@tool
+def retrieve_customer_info(name: str) -> str:
+    """Retrieve customer information based on their name."""
+    customer_info = customers[customers['name'] == name]
+    return customer_info.to_string()
+  
+# Print the tool's arguments
+print(retrieve_customer_info.args)
+
+
+"INTEGRATING CUSTOM TOOLS WITH AGENTS"
+@tool
+def retrieve_customer_info(name: str) -> str:
+    """Retrieve customer information based on their name."""
+    customer_info = customers[customers['name'] == name]
+    return customer_info.to_string()
+
+# Create a ReAct agent
+agent = create_react_agent(llm, [retrieve_customer_info])
+
+# Invoke the agent on the input
+messages = agent.invoke({"messages": [("human", "Create a summary of our customer: Peak Performance Co.")]})
+print(messages['messages'][-1].content)
