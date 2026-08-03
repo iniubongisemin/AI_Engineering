@@ -213,3 +213,220 @@ agent = create_react_agent(llm, [retrieve_customer_info])
 # Invoke the agent on the input
 messages = agent.invoke({"messages": [("human", "Create a summary of our customer: Peak Performance Co.")]})
 print(messages['messages'][-1].content)
+
+
+"PDF DOCUMENT LOADERS"
+# Import library
+from langchain_community.document_loaders import PyPDFLoader
+
+# Create a document loader for rag_vs_fine_tuning.pdf
+loader = PyPDFLoader("rag_vs_fine_tuning.pdf")
+
+# Load the document
+data = loader.load()
+print(data[0])
+
+
+"CSV DOCUMENT LOADERS"
+# Import library
+from langchain_community.document_loaders.csv_loader import CSVLoader
+
+# Create a document loader for fifa_countries_audience.csv
+loader = CSVLoader("fifa_countries_audience.csv")
+
+# Load the document
+data = loader.load()
+print(data[0])
+
+
+"HTML DOCUMENT LOADERS"
+from langchain_community.document_loaders import UnstructuredHTMLLoader
+
+# Create a document loader for unstructured HTML
+loader = UnstructuredHTMLLoader("white_house_executive_order_nov_2023.html")
+
+# Load the document
+data = loader.load()
+
+# Print the first document
+print(data[0])
+
+# Print the first document's metadata
+print(data[0].metadata)
+
+
+"SPLITTING BY CHARACTER"
+# Import the character splitter
+from langchain_text_splitters import CharacterTextSplitter
+
+quote = 'Words are flowing out like endless rain into a paper cup,\nthey slither while they pass,\nthey slip away across the universe.'
+chunk_size = 24
+chunk_overlap = 10
+
+# Create an instance of the splitter class
+splitter = CharacterTextSplitter(
+    separator="\n",
+    chunk_size=24,
+    chunk_overlap=10)
+
+# Split the string and print the chunks
+docs = splitter.split_text(quote)
+print(docs)
+print([len(doc) for doc in docs])
+
+
+"RECURSIVELY SPLITTING BY CHARACTER"
+# Import the recursive character splitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+quote = 'Words are flowing out like endless rain into a paper cup,\nthey slither while they pass,\nthey slip away across the universe.'
+chunk_size = 24
+chunk_overlap = 10
+
+# Create an instance of the splitter class
+splitter = RecursiveCharacterTextSplitter(
+    separators=["\n", " ", ""],
+    chunk_size=chunk_size,
+    chunk_overlap=chunk_overlap)
+
+# Split the document and print the chunks
+docs = splitter.split_text(quote)
+print(docs)
+print([len(doc) for doc in docs])
+
+"""
+output:
+  ['Words are flowing out', 'out like endless rain', 'rain into a paper cup,', 'they slither while they', 'they pass,', 'they slip away across', 'across the universe.']
+  [21, 21, 22, 23, 10, 21, 20]
+
+VARIANTS:
+1.
+chunk_size = 22
+chunk_overlap = 8
+
+['Words are flowing out', 'out like endless rain', 'rain into a paper', 'a paper cup,', 'they slither while', 'while they pass,', 'they slip away across', 'across the universe.']
+[21, 21, 17, 12, 18, 16, 21, 20]
+
+2.
+chunk_size = 20
+chunk_overlap = 6
+
+['Words are flowing', 'out like endless', 'rain into a paper', 'paper cup,', 'they slither while', 'while they pass,', 'they slip away', 'away across the', 'the universe.']
+[17, 16, 17, 10, 18, 16, 14, 15, 13]
+
+3.
+chunk_size = 18
+chunk_overlap = 4
+
+['Words are flowing', 'out like endless', 'rain into a paper', 'cup,', 'they slither', 'while they pass,', 'they slip away', 'across the', 'the universe.']
+[17, 16, 17, 4, 12, 16, 14, 10, 13]
+
+4.
+chunk_size = 24
+chunk_overlap = 4
+
+['Words are flowing out', 'out like endless rain', 'into a paper cup,', 'they slither while they', 'pass,', 'they slip away across', 'the universe.']
+[21, 21, 17, 23, 5, 21, 13]
+
+5. 
+chunk_size = 24
+chunk_overlap = 2
+
+['Words are flowing out', 'like endless rain into', 'a paper cup,', 'they slither while they', 'pass,', 'they slip away across', 'the universe.']
+[21, 22, 12, 23, 5, 21, 13]
+
+6.
+chunk_size = 30
+chunk_overlap = 2
+
+['Words are flowing out like', 'endless rain into a paper', 'cup,', 'they slither while they pass,', 'they slip away across the', 'universe.']
+[26, 25, 4, 29, 25, 9]
+"""
+
+
+"SPLITTING HTML"
+# Load the HTML document into memory
+loader = UnstructuredHTMLLoader("white_house_executive_order_nov_2023.html")
+data = loader.load()
+
+# Define variables
+chunk_size = 300
+chunk_overlap = 100
+
+# Split the HTML
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=chunk_size,
+    chunk_overlap=chunk_overlap,
+    separators=".")
+
+docs = splitter.split_documents(data)
+print(docs)
+
+
+"PREPARING THE DOCUMENTS & VECTOR DATABASE"
+import os
+from langchain_openai import OpenAIEmbeddings
+from langchain_chroma import Chroma
+loader = PyPDFLoader('rag_vs_fine_tuning.pdf')
+data = loader.load()
+
+# Split the document using RecursiveCharacterTextSplitter
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=300,
+    chunk_overlap=50)
+docs = splitter.split_documents(data) 
+
+# Embed the documents in a persistent Chroma vector database
+embedding_function = OpenAIEmbeddings(api_key='<OPENAI_API_TOKEN>', model='text-embedding-3-small')
+vectorstore = Chroma.from_documents(
+    docs,
+    embedding=embedding_function,
+    persist_directory=os.getcwd()
+)
+
+# Configure the vector store as a retriever
+retriever = vectorstore.as_retriever(
+    search_type="similarity",
+    search_kwargs={"k": 3}
+)
+
+
+"BUILDING A RETRIEVAL PROMPT TEMPLATE"
+# Add placeholders to the message string
+message = """
+Answer the following question using the context provided:
+
+Context:
+{context}
+
+Question:
+{question}
+
+Answer:
+"""
+
+# Create a chat prompt template from the message string
+prompt_template = ChatPromptTemplate.from_messages([("human", message)])
+
+
+"CREATING A RAG CHAIN"
+from langchain_core.runnables import RunnablePassthrough
+vectorstore = Chroma.from_documents(
+    docs,
+    embedding=OpenAIEmbeddings(api_key='<OPENAI_API_TOKEN>', model='text-embedding-3-small'),
+    persist_directory=os.getcwd()
+)
+
+retriever = vectorstore.as_retriever(
+    search_type="similarity",
+    search_kwargs={"k": 3}
+)
+
+# Create a chain to link retriever, prompt_template, and llm
+rag_chain = ({"context": retriever, "question": RunnablePassthrough()}
+            | prompt_template
+            | llm)
+
+# Invoke the chain
+response = rag_chain.invoke("Which popular LLMs were considered in the paper?")
+print(response.content)
