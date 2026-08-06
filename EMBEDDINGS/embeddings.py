@@ -79,6 +79,17 @@ for i, category in enumerate(categories):
 plt.show()
 
 
+"COMPUTING COSINE DISTANCES"
+A, B, C, D = [] # Dummy variables
+distance.cosine(A, D)
+"ANS: np.float64(0.16579245471375115)"
+
+distance.cosine(A, C)
+"ANS: np.float64(0.22159319134316813)"
+
+distance.cosine(A, D)
+"np.float64(0.08560380505068121)"
+
 "MORE REPEATABLE EMBEDDINGS"
 # Define a create_embeddings function
 def create_embeddings(texts):
