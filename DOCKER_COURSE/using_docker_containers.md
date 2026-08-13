@@ -1,47 +1,67 @@
-RUNNING THE HELLO-WORLD IMAGE
+### RUNNING THE HELLO-WORLD IMAGE
 docker run hello-world
 
-RUNNING A CONTAINER IN THE BACKGROUND
+### RUNNING A CONTAINER IN THE BACKGROUND
 docker run -d postgres
 
-CHECKING RUNNING CONTAINERS
+### CHECKING RUNNING CONTAINERS
 docker ps
 
-UBUNTU INTERACTIVE CONTAINER
+### UBUNTU INTERACTIVE CONTAINER
 docker run -it ubuntu && exit
 
-CREATING A CONTAINER FOR A SPECIFIC DOCKER IMAGE
+### CREATING A CONTAINER FOR A SPECIFIC DOCKER IMAGE
 docker run --name <container name> <image name>
 
-EX.
+### START CONTAINER WITH A NAME
+docker run --name <container-name><image-name>
+
+### FILTER RUNNING CONTAINER ON NAME
+docker ps -f "name=<container-name>"
+
+### SEE EXISTING LOGS FOR CONTAINER
+docker logs <container-id>
+
+### SEE LIVE LOGS FOR CONTAINER
+docker logs -f <container-id>
+
+### EXIT LIVE LOG VIEW OF CONTAINER
+CTRL + C
+
+### REMOVE STOPPED CONTAINER
+docker container rm <container-id>
+
+### EX.
 HELPING A COLLEAGUE
 docker run -d --name colleague_project my_project
 
-FILTERING RUNNING CONTAINERS
-docker ps -f "name=<running-container>
+### FILTERING RUNNING CONTAINERS
+docker ps -f "name=<running-container>"
 
-CHECKING LOGS BY CONTAINER NAME
+### CHECKING LOGS BY CONTAINER NAME
 docker logs colleague_project
 
-CLEANING UP
+### CLEANING UP
 1. docker stop colleague_project
 2. docker container rm colleague_project
 
-SEE ALL IMAGES
+### SEE ALL IMAGES
 docker images
 
-PULL A PROJECT FROM DOCKER HUB
+### PULL A PROJECT FROM DOCKER HUB
 docker pull ubuntu (Automatically pulls the latest)
 docker pull ubuntu:22.04
 
-CLEANING UP DOCKER IMAGES
+### CLEANING UP DOCKER IMAGES
 docker image rm ubuntu
 
-CLEANING UP CONTAINERS
+### CLEANING UP CONTAINERS
 docker container prune
 
-CLEANING UP IMAGES
+### CLEANING UP IMAGES
 docker image prune -a
 
-
+### BUILDING AND RUNNING A DOCKER CONTAINER
+docker build .
+docker run test-image
 
