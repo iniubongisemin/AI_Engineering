@@ -65,3 +65,46 @@ docker image prune -a
 docker build .
 docker run test-image
 
+### SAVE AN IMAGE
+docker save -o image.tar classify_spam:v1
+
+### PULL IMAGE FROM PRIVATE REGISTRY
+docker pull <private-registry-url>/<image-name>
+
+### NAME AN IMAGE
+docker tag <old-name><new-name>
+
+### PUSH AN IMAGE
+docker image push <image-name>
+
+### LOGIN TO PRIVATE REGISTRY
+docker login <private-registry-url>
+
+### SHARING YOUR WORK USING DOCKER REGISTRY
+### TAGGING A DOCKER IMAGE BEFORE PUSHING TO DOCKER REGISTRY
+docker tag <image-name> <private-registry-url>/<image-name>
+docker tag spam:v1 docker.mycompany.com/spam:v1
+
+### PUSHING TO A REGISTRY
+docker image push <image name>
+docker image push docker.mycompany.com/spam:v1
+
+### SAVE IMAGE TO FILE
+docker save -o <file-name><image-name>
+
+### LOAD IMAGE FROM FILE
+docker load -i <file-name>
+
+### RECEIVING DOCKER IMAGES >> Ex.12
+docker pull docker.mycompany.com/spam_alice:v3
+docker run docker.mycompany.com/spam_alice:v3
+>> OPEN TAR FILES
+docker load -i spam_bob.tar
+docker run spam_bob:v3
+
+### BUILDING DOCKER FILES
+docker build .
+>> BUILDING & NAMING DOCKER FILES
+docker build -t my_first_image .
+
+### WORKING IN THE COMMANDLINE
