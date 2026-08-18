@@ -108,3 +108,43 @@ docker build .
 docker build -t my_first_image .
 
 ### WORKING IN THE COMMANDLINE
+>> CREATE AN EMPTY FILE
+touch Dockerfile
+nano Dockerfile
+>> ADDING TEXT TO A FILE
+echo "RUN apt-get update"" >> Dockerfile
+>> CHECK THE CONTENTS OF A FILE
+cat Dockerfile
+>> BUILD & TAG AN IMAGE IN CWD
+docker build -t my_app .
+
+### CREATING YOUR OWN DOCKERFILE
+touch Dockerfile
+echo "FROM ubuntu" >> Dockerfile
+echo "RUN apt-get update" >> Dockerfile && echo "RUN apt-get install -y python3" >> Dockerfile
+docker build -t my_python_image .
+
+### COPYING FILES INTO AN IMAGE
+echo "COPY /home/repl/pipeline.py /app/pipeline.py" >> Dockerfile
+
+### COPYING FOLDERS INTO AN IMAGE
+echo "COPY /pipeline_v3/ /app/pipeline_v3/" >> Dockerfile
+
+### BUILD THE IMAGE
+docker build -t pipeline_v3 .
+
+### WORKING WITH DOWNLOADED FILES
+>> CREATE DOCKERFILE
+touch Dockerfile
+>> UPDATE DOCKERFILE
+echo "FROM ubuntu" >> Dockerfile && echo "RUN apt-get update" >> Dockerfile && echo "RUN apt-get install -y python3 curl unzip" >> Dockerfile
+>> DOWNLOAD FILES, ZIP & UNZIP
+echo "RUN curl https://assets.datacamp.com/production/repositories/6082/datasets/31a5052c6a5424cbb8d939a7a6eff9311957e7d0/pipeline_final.zip -o /pipeline_final.zip && RUN unzip /pipeline_final.zip && RUN rm /pipeline_final.zip" >> Dockerfile 
+>> BUILD DOCKERFILE
+docker build -t pipeline .
+
+### ADDING A CMD
+echo "CMD python3 my_pipeline.py" >> Dockerfile
+docker run pipeline_debug
+
+
