@@ -147,4 +147,23 @@ docker build -t pipeline .
 echo "CMD python3 my_pipeline.py" >> Dockerfile
 docker run pipeline_debug
 
+### SETTING THE USER 
+echo "USER repl" >> Dockerfile
 
+### SETTING THE WORKING DIRECTORY
+echo "WORKDIR /home/repl" >> Dockerfile
+
+### OVERRIDING ARG IN A BUILD 
+docker build --build-arg WELCOME_TEXT=Welcome! .
+
+### CHANGING BEHAVIOUR WHEN STARTING A CONTAINER
+docker run --env NAME=hello_image hello_image
+
+### DO NOT USE ROOT
+>> Dockerfile
+FROM ubuntu
+RUN useradd -m repl
+USER repl
+CMD apt-get install python3
+
+docker run repl_try_install
