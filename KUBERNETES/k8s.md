@@ -51,3 +51,32 @@ kubectl apply -f 01_statefulset
 .yml
 kubectl get pods
 kubectl scale statefulset datacamp-statefulset --replicas 10
+
+### PODS WITH ATTACHED STORAGE
+>>> GET STORAGE CLASSES
+kubectl get sc
+>>> APPLY MANIFEST THAT DECLARES PODS
+kubectl apply -f 01_pods.yml
+>>> OUTPUT
+pod/datacamp-pod-1 created
+pod/datacamp-pod-2 created
+>>> OBSERVE A PODS
+kubectl get pods
+>>> OUTPUT
+datacamp-pod-1   0/1     Pending   0          8m41s
+datacamp-pod-2   0/1     Pending   0          8m41s
+>>> APPLYING POD & STORAGE MANIFESTS
+kubectl apply -f 01_pods.yml -f 02_pvc.yml
+>>> OUTPUT
+pod/datacamp-pod-1 configured
+pod/datacamp-pod-2 configured
+persistentvolumeclaim/datacamp-pvc unchanged
+>>> CHECK WHICH PODS ARE USING PERSISTENT VOLUME
+kubectl describe pvc | grep "Used By" -B 3 -A 2
+>>> OUTPUT
+Capacity:      10M
+Access Modes:  RWO
+VolumeMode:    Filesystem
+Used By:       datacamp-pod-1
+               datacamp-pod-2
+Events:
