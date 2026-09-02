@@ -1,0 +1,4 @@
+google-genai==2.20.0
+pinecone==9.1.0
+python-dotenv==1.2.2
+reportlab==5.0.1

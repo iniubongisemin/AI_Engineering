@@ -167,3 +167,7 @@ USER repl
 CMD apt-get install python3
 
 docker run repl_try_install
+
+docker run -v ~/workspace/customerdata.json:/customerdata.json crane 
+>>> OUTPUT:
+Container created for company: The File Store
